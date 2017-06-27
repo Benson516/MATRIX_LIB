@@ -36,11 +36,17 @@ void Mat_multiply_Vec(vector<float> &v_out, vector<vector<float> > &m_left, vect
     }
 }
 vector<float> Mat_multiply_Vec(vector<vector<float> > &m_left, vector<float> &v_right){ // v_out = m_left*v_right
+
+    vector<float> v_out(m_left.size());
+
+    /*
     static vector<float> v_out;
     // Size check
     if (v_out.size() != m_left.size()){
         v_out.resize(m_left.size());
     }
+    */
+
     // Iterators
     vector<float>::iterator it_out;
     vector<float>::iterator it_m_row;
@@ -70,19 +76,24 @@ vector<float> Mat_multiply_Vec(vector<vector<float> > &m_left, vector<float> &v_
 
 // New function for matrix multiply matrix
 vector<vector<float> > Mat_multiply_Mat(vector<vector<float> > &m_left, vector<vector<float> > &m_right){ // m_out = m_left*m_right
-    static vector<vector<float> > m_out;
 
-	// mxn = (mxk)*(kxn)
+    // mxn = (mxk)*(kxn)
     size_t M, K, N;
     //
     M = m_left.size();
     K = m_left[0].size();
     N = m_right[0].size();
 
+
+    vector<vector<float> > m_out(M, vector<float>(N));
+
+    /*
+    vector<vector<float> > m_out;
     // Size check
     if (m_out.size() != M || m_out[0].size() != N ){
         m_out.resize(M, vector<float>( N ) );
     }
+    */
 
     // Using indexing
     for (size_t i = 0; i < M; ++i){ // row in m_out
@@ -100,11 +111,16 @@ vector<vector<float> > Mat_multiply_Mat(vector<vector<float> > &m_left, vector<v
 
 vector<float> Get_VectorPlus(const vector<float> &v_a, const vector<float> &v_b, bool is_minus) // v_a + (or -) v_b
 {
+
+    vector<float> v_c(v_a.size());
+
+    /*
     static vector<float> v_c;
     // Size check
     if (v_c.size() != v_a.size()){
         v_c.resize(v_a.size());
     }
+    */
     //
     for (size_t i = 0; i < v_a.size(); ++i){
         if (is_minus){
@@ -117,11 +133,21 @@ vector<float> Get_VectorPlus(const vector<float> &v_a, const vector<float> &v_b,
 }
 vector<float> Get_VectorScalarMultiply(const vector<float> &v_a, float scale) // scale*v_a
 {
+    if (scale == 0.0){
+        return vector<float>(v_a.size(), 0.0);
+    }
+
+    // Else
+    vector<float> v_c(v_a.size());
+
+    /*
     static vector<float> v_c;
     // Size check
     if (v_c.size() != v_a.size()){
         v_c.resize(v_a.size());
     }
+    */
+
     // for pure negative
     if (scale == -1.0){
         for (size_t i = 0; i < v_a.size(); ++i){
@@ -148,7 +174,12 @@ void Get_VectorScaleUp(vector<float> &v_a, float scale) // v_a *= scale
             v_a[i] = -v_a[i];
         }
         //
-    }else{
+    }else if (scale == 0.0){ // Zero
+        for (size_t i = 0; i < v_a.size(); ++i){
+            v_a[i] = 0.0;
+        }
+        //
+    }else {
         // else
         for (size_t i = 0; i < v_a.size(); ++i){
             v_a[i] *= scale;
@@ -369,7 +400,7 @@ vector<vector<float> > MatrixInversion(vector<vector<float> > M){
 		//
 		// M_diag = M[i][i]; // This has been normalized, which is 1.0
 		//
-		for (size_t j = 0; j < n; ++j){ // For the row other than than the current row
+		for (size_t j = 0; j < n; ++j){ // For the row other than the current row
 			if (j != i){ // Not going to do anything with that row itself
 				//
 				// ratio = M[j][i]/M_diag;

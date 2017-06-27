@@ -26,13 +26,23 @@ Mat::Mat(size_t nRow_in, size_t nCol_in, float element_in):
 //----------------------------------//
 // Size ---
 // "Get" the size of the matrix
-size_t Mat::nRow(){
-    return _nRow;
+size_t Mat::nRow() {
+    return this->_nRow;
 }
-size_t Mat::nCol(){
-    return _nCol;
+size_t Mat::nCol() {
+    return this->_nCol;
 }
-size_t Mat::nElement(){ // Number of elements
+size_t Mat::nElement() { // Number of elements
+    return (_nRow*_nCol);
+}
+// const functions
+size_t Mat::nRow() const {
+    return this->_nRow;
+}
+size_t Mat::nCol() const {
+    return this->_nCol;
+}
+size_t Mat::nElement() const { // Number of elements
     return (_nRow*_nCol);
 }
 // "Set" and "get" the new size of the matrix
@@ -102,7 +112,9 @@ void Mat::resize(size_t nRow_in, size_t nCol_in, float element_in){ // Assign th
 void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_Row_first, keep the elements' order the same in the row direction; otherwise, keep the order the same in column direction.
     // Note: nRow_in * nCol_in should be better be the same as this->nElement(), or some elemnets will be lost or be added (add zeros, actually)
     //
-    Mat M_new(nRow_in, nCol_in);
+    vector<vector<float>> data_new(nRow_in, vector<float>(nCol_in));
+    // Mat M_new(nRow_in, nCol_in);
+
     // The index for the old matrix
     size_t io = 0;
     size_t jo = 0;
@@ -114,7 +126,7 @@ void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_R
                 //-------------------//
                 // In-range check:
                 if (io < this->_nRow && jo < this->_nCol){ // In range
-                    M_new.data[i][j] = this->data[io][jo];
+                    data_new[i][j] = this->data[io][jo];
                     // Row go first
                     jo++;
                     // Change row
@@ -124,7 +136,7 @@ void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_R
                     }
                     //
                 }else{ // Out of range
-                    M_new.data[i][j] = 0.0;
+                    data_new[i][j] = 0.0;
                 }
                 //-------------------//
             }
@@ -136,7 +148,7 @@ void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_R
                 //-------------------//
                 // In-range check:
                 if (io < this->_nRow && jo < this->_nCol){ // In range
-                    M_new.data[i][j] = this->data[io][jo];
+                    data_new[i][j] = this->data[io][jo];
                     // Column go fist
                     io++;
                     // Change row
@@ -146,7 +158,7 @@ void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_R
                     }
                     //
                 }else{ // Out of range
-                    M_new.data[i][j] = 0.0;
+                    data_new[i][j] = 0.0;
                 }
                 //-------------------//
             }
@@ -154,7 +166,20 @@ void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_R
     }
     //
     // Update this matrix
-    *this = M_new;
+    // *this = M_new;
+    /*
+    vector<vector<float>> *temp_ptr = &(this->data);
+    //
+    &(this->data) = &data_new;
+    this->syncSizeInData();
+    //
+    delete temp_ptr;
+    */
+
+    this->data = data_new;
+    this->syncSizeInData();
+    //
+    return;
 }
 // Synchronize the _nRow and _nCol with the true size of data
 void Mat::syncSizeInData(){
@@ -192,7 +217,7 @@ void Mat::assign(float* Matrix_in, size_t nRow_in, size_t nCol_in){ // From prim
         }
     }
 }
-void Mat::assign(vector<float> &vec_in, bool is_RowVec){ // From 1-D vector
+void Mat::assign(const vector<float> &vec_in, bool is_RowVec){ // From 1-D vector
     size_t n = vec_in.size();
     //
     if (is_RowVec){ // Row vector
@@ -214,12 +239,12 @@ void Mat::assign(vector<float> &vec_in, bool is_RowVec){ // From 1-D vector
         //
     }
 }
-void Mat::assign(vector<vector<float> > &MatData_in){ // A = MatData_in, assign a primitive matrix directly
+void Mat::assign(const vector<vector<float> > &MatData_in){ // A = MatData_in, assign a primitive matrix directly
     this->data = MatData_in;
     this->syncSizeInData();
 }
 // Partial asignment
-void Mat::setPart(Mat M_part, size_t m_from, size_t n_from){ // The block starts from (m_from, n_from)
+void Mat::setPart(const Mat &M_part, size_t m_from, size_t n_from){ // The block starts from (m_from, n_from)
     size_t m_to, n_to;
     // The index of the last element of the inserted block
     m_to = m_from + M_part.nRow() - 1;
@@ -288,7 +313,7 @@ void Mat::eye(size_t nRow_in, size_t nCol_in){ // Identity matrix, eye(m,n)
     }
     //
 }
-void Mat::diag(Mat M_diag){ // Transform the row/column vector to a diagonal matrix and assign into this matrix
+void Mat::diag(const Mat &M_diag){ // Transform the row/column vector to a diagonal matrix and assign into this matrix
     size_t M = M_diag.nRow();
     size_t N = M_diag.nCol();
     size_t nE = M_diag.nElement();
@@ -400,7 +425,7 @@ std::string Mat::print(void){ // Print this matrix out as string
 
 // Operations =====
 // Comparison
-bool Mat::is_equal(Mat M_in){
+bool Mat::is_equal(const Mat &M_in){
     //
     if (M_in.nRow() != this->_nRow || M_in.nCol() != this->_nCol){
         return false;
@@ -424,7 +449,7 @@ void Mat::scaleUp(float scale){ // M *= scale
         MP::Get_VectorScaleUp(data[i], scale);
     }
 }
-void Mat::scaleUp_Mat(Mat M_right){ // M = M.times(M_right), element-wise multiplication
+void Mat::scaleUp_Mat(const Mat &M_right){ // M = M.times(M_right), element-wise multiplication
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -448,13 +473,13 @@ void Mat::decrease(float scale){ // M -= scale, for each element in M
         }
     }
 }
-void Mat::increase(Mat M_right){ // M += M_right
+void Mat::increase(const Mat &M_right){ // M += M_right
     //
     for (size_t i = 0; i < _nRow; ++i){
         MP::Get_VectorIncrement(data[i], M_right.data[i], false); // +=
     }
 }
-void Mat::decrease(Mat M_right){ // M -= M_right
+void Mat::decrease(const Mat &M_right){ // M -= M_right
     //
     for (size_t i = 0; i < _nRow; ++i){
         MP::Get_VectorIncrement(data[i], M_right.data[i], true); // -=
@@ -465,6 +490,10 @@ void Mat::decrease(Mat M_right){ // M -= M_right
 Mat Mat::T(void){ // Return the transposed version of this matrix
     //
     Mat M_t(_nCol, _nRow);
+    /*
+    static Mat M_t;
+    M_t.resize(_nCol, _nRow);
+    */
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -475,13 +504,16 @@ Mat Mat::T(void){ // Return the transposed version of this matrix
 }
 // Inverse
 Mat Mat::inverse(void){ // Return the inversion of this matrix
-
-    if (this->_nRow != this->_nCol){
-        Mat Empty; // Empty matrix
-        return Empty;
-    }
+    // The output matrix
 
     Mat M_inv;
+
+    if (this->_nRow != this->_nCol){
+        M_inv.resize(0,0); // Empty matrix
+        return M_inv;
+    }
+
+
     // M_inv.resize( _nCol, _nRow); // Maybe we will impliment the psodo inverse next time
 
     //
@@ -493,22 +525,24 @@ Mat Mat::inverse(void){ // Return the inversion of this matrix
     return M_inv;
 }
 Mat Mat::intPower(int power){ // M^power, M^0 -> I, M^-1 -> M_inverse
+    // The output matrix
+    Mat M_out;
 
     // Spetial case M^1 -> M
     if (power == 1){
-        return *this;
+        M_out = *this;
+        return M_out;
     }
     // Spetial case M^0 -> I
     if (power == 0){
-        Mat I_out;
-        I_out.eye(_nRow,_nCol);
-        return I_out;
+        M_out.eye(_nRow,_nCol);
+        return M_out;
     }
 
     // Check for square matrix
     if (this->_nRow != this->_nCol){
-        Mat Empty; // Error, return empty matrix
-        return Empty;
+        M_out.resize(0,0); // Error, return empty matrix
+        return M_out;
     }
     //-----------------------------------------------//
 
@@ -520,8 +554,6 @@ Mat Mat::intPower(int power){ // M^power, M^0 -> I, M^-1 -> M_inverse
     //
 
     // Other cases
-    //
-    Mat M_out;
     //
     if (power > 1){ // power > 1
         M_out = *this;
@@ -547,6 +579,10 @@ Mat Mat::intPower(int power){ // M^power, M^0 -> I, M^-1 -> M_inverse
 Mat Mat::plus(float scale){ // (M + scale), for each element in M
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow,_nCol);
+    */
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -558,6 +594,10 @@ Mat Mat::plus(float scale){ // (M + scale), for each element in M
 Mat Mat::minus(float scale){ // (M - scale), for each element in M
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow,_nCol);
+    */
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -569,6 +609,10 @@ Mat Mat::minus(float scale){ // (M - scale), for each element in M
 Mat Mat::minus(float scale, bool is_reversed){ // is_reversed -> (scale - M), for each element in M
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow,_nCol);
+    */
     //
     if (is_reversed){ // Reversed
         for (size_t i = 0; i < _nRow; ++i){
@@ -585,9 +629,13 @@ Mat Mat::minus(float scale, bool is_reversed){ // is_reversed -> (scale - M), fo
     }
     return M_out;
 }
-Mat Mat::plus(Mat M_right){
+Mat Mat::plus(const Mat &M_right){
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow,_nCol);
+    */
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -596,9 +644,13 @@ Mat Mat::plus(Mat M_right){
     }
     return M_out;
 }
-Mat Mat::minus(Mat M_right){
+Mat Mat::minus(const Mat &M_right){
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow,_nCol);
+    */
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -608,7 +660,7 @@ Mat Mat::minus(Mat M_right){
     return M_out;
 }
 // Concatenation
-Mat Mat::cat_below(Mat M_in){ // Below this matrix, [A; B]
+Mat Mat::cat_below(const Mat &M_in){ // Below this matrix, [A; B]
     Mat M_cat;
     // Using setPart(), the size will be automatically changed.
     //------------------------------//
@@ -619,7 +671,7 @@ Mat Mat::cat_below(Mat M_in){ // Below this matrix, [A; B]
     //------------------------------//
     return M_cat;
 }
-Mat Mat::cat_right(Mat M_in){ // Right-side of this matrix, [A, B]
+Mat Mat::cat_right(const Mat &M_in){ // Right-side of this matrix, [A, B]
     Mat M_cat;
     // Using setPart(), the size will be automatically changed.
     //------------------------------//
@@ -630,7 +682,7 @@ Mat Mat::cat_right(Mat M_in){ // Right-side of this matrix, [A, B]
     //------------------------------//
     return M_cat;
 }
-Mat Mat::cat(Mat M_in, bool is_horizontal){ // is_horizontal --> cat_Right(); otherwise --> cat_Below()
+Mat Mat::cat(const Mat &M_in, bool is_horizontal){ // is_horizontal --> cat_Right(); otherwise --> cat_Below()
     //
     if(is_horizontal){ // [A, B]
         return this->cat_right(M_in);
@@ -643,6 +695,12 @@ Mat Mat::cat(Mat M_in, bool is_horizontal){ // is_horizontal --> cat_Right(); ot
 Mat Mat::times(float scale){ // Scalar multiplication
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    //
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow, _nCol);
+    */
+
 
     if(scale == -1.0){
         //
@@ -661,9 +719,13 @@ Mat Mat::times(float scale){ // Scalar multiplication
     }
     return M_out;
 }
-Mat Mat::times(Mat M_right){ // Element-wise multiplication
+Mat Mat::times(const Mat &M_right){ // Element-wise multiplication
     // Create the output matrix
     Mat M_out(_nRow,_nCol);
+    /*
+    static Mat M_out;
+    M_out.resize(_nRow,_nCol);
+    */
     //
     for (size_t i = 0; i < _nRow; ++i){
         for (size_t j = 0; j < _nCol; ++j){
@@ -676,7 +738,7 @@ Mat Mat::times(Mat M_right){ // Element-wise multiplication
 
 // Matrix multiplication
 // Note: this matrix is the "left" one
-Mat Mat::dot(Mat M_right){ // Similar to the nomenclature of numpy in Python
+Mat Mat::dot(const Mat &M_right){ // Similar to the nomenclature of numpy in Python
 
     // Size check
     // mxn = (mxk)*(kxn)
@@ -688,10 +750,13 @@ Mat Mat::dot(Mat M_right){ // Similar to the nomenclature of numpy in Python
 
     // The output matrix
     Mat M_out(M, N);
-
+    /*
+    static Mat M_out;
+    M_out.resize(M, N);
+    */
 
     // cout << "here in\n";
-
+    float* ptr_data = NULL;
     // Using indexing
     for (size_t i = 0; i < M; ++i){ // row in m_out
         //
@@ -701,17 +766,19 @@ Mat Mat::dot(Mat M_right){ // Similar to the nomenclature of numpy in Python
             //
             // cout << "#j: " << j << "\n";
             //
-            M_out.data[i][j] = 0.0;
+            ptr_data = &(M_out.data[i][j]);
+            //
+            *ptr_data = 0.0;
             for (size_t k = 0; k < K; ++k){
                 if (data[i][k] != 0.0 && M_right.data[k][j] != 0.0)
-                    M_out.data[i][j] += data[i][k]*M_right.data[k][j];
+                    *ptr_data += data[i][k]*M_right.data[k][j];
             }
         }
     }
 
     return M_out;
 }
-Mat Mat::dot(bool Transpose_left, Mat M_right, bool Transpose_right){ // Extended version for conbining the ability of transpose of both mtrices
+Mat Mat::dot(bool Transpose_left, const Mat &M_right, bool Transpose_right){ // Extended version for conbining the ability of transpose of both mtrices
 
     // Size check
     // mxn = (mxk)*(kxn)
@@ -733,7 +800,14 @@ Mat Mat::dot(bool Transpose_left, Mat M_right, bool Transpose_right){ // Extende
 
     // The output matrix
     Mat M_out(M, N);
+    /*
+    static Mat M_out;
+    M_out.resize(M, N);
+    */
 
+    //
+    float* ptr_data = NULL;
+    //
 
     // Check the conditions of transpotations
     if(Transpose_left){
@@ -742,10 +816,13 @@ Mat Mat::dot(bool Transpose_left, Mat M_right, bool Transpose_right){ // Extende
             // Using indexing
             for (size_t i = 0; i < M; ++i){ // row in m_out
                 for (size_t j = 0; j < N; ++j){ // column in m_out
-                    M_out.data[i][j] = 0.0;
+                    // M_out.data[i][j] = 0.0;
+                    ptr_data = &(M_out.data[i][j]);
+                    *ptr_data = 0.0;
+                    //
                     for (size_t k = 0; k < K; ++k){
                         if (data[k][i] != 0.0 && M_right.data[j][k] != 0.0) // (i,k) -> (k,i), (k,j) -> (j,k)
-                            M_out.data[i][j] += data[k][i]*M_right.data[j][k]; // (i,k) -> (k,i), (k,j) -> (j,k)
+                            *ptr_data += data[k][i]*M_right.data[j][k]; // (i,k) -> (k,i), (k,j) -> (j,k)
                     }
                 }
             }
@@ -755,10 +832,13 @@ Mat Mat::dot(bool Transpose_left, Mat M_right, bool Transpose_right){ // Extende
             // Using indexing
             for (size_t i = 0; i < M; ++i){ // row in m_out
                 for (size_t j = 0; j < N; ++j){ // column in m_out
-                    M_out.data[i][j] = 0.0;
+                    // M_out.data[i][j] = 0.0;
+                    ptr_data = &(M_out.data[i][j]);
+                    *ptr_data = 0.0;
+                    //
                     for (size_t k = 0; k < K; ++k){
                         if (data[k][i] != 0.0 && M_right.data[k][j] != 0.0) // (i,k) -> (k,i)
-                            M_out.data[i][j] += data[k][i]*M_right.data[k][j]; // (i,k) -> (k,i)
+                            *ptr_data += data[k][i]*M_right.data[k][j]; // (i,k) -> (k,i)
                     }
                 }
             }
@@ -770,10 +850,13 @@ Mat Mat::dot(bool Transpose_left, Mat M_right, bool Transpose_right){ // Extende
             // Using indexing
             for (size_t i = 0; i < M; ++i){ // row in m_out
                 for (size_t j = 0; j < N; ++j){ // column in m_out
-                    M_out.data[i][j] = 0.0;
+                    // M_out.data[i][j] = 0.0;
+                    ptr_data = &(M_out.data[i][j]);
+                    *ptr_data = 0.0;
+                    //
                     for (size_t k = 0; k < K; ++k){
                         if (data[i][k] != 0.0 && M_right.data[j][k] != 0.0) // (k,j) -> (j,k)
-                            M_out.data[i][j] += data[i][k]*M_right.data[j][k]; // (k,j) -> (j,k)
+                            *ptr_data += data[i][k]*M_right.data[j][k]; // (k,j) -> (j,k)
                     }
                 }
             }
@@ -783,10 +866,13 @@ Mat Mat::dot(bool Transpose_left, Mat M_right, bool Transpose_right){ // Extende
             // Using indexing
             for (size_t i = 0; i < M; ++i){ // row in m_out
                 for (size_t j = 0; j < N; ++j){ // column in m_out
-                    M_out.data[i][j] = 0.0;
+                    // M_out.data[i][j] = 0.0;
+                    ptr_data = &(M_out.data[i][j]);
+                    *ptr_data = 0.0;
+                    //
                     for (size_t k = 0; k < K; ++k){
                         if (data[i][k] != 0.0 && M_right.data[k][j] != 0.0)
-                            M_out.data[i][j] += data[i][k]*M_right.data[k][j];
+                            *ptr_data += data[i][k]*M_right.data[k][j];
                     }
                 }
             }
@@ -806,11 +892,11 @@ Mat& Mat::operator = (float scale){ // Assign a real number as 1 by 1 matrix
     this->data[0][0] = scale;
     return *this;
 }
-Mat& Mat::operator = (vector<float> &colVec_in){ // A = vec_in, assign as a column vector
+Mat& Mat::operator = (const vector<float> &colVec_in){ // A = vec_in, assign as a column vector
     this->assign(colVec_in, false); // A column vector
     return *this;
 }
-Mat& Mat::operator = (vector<vector<float> > &MatData_in){ // A = MatData_in, assign a primitive matrix directly
+Mat& Mat::operator = (const vector<vector<float> > &MatData_in){ // A = MatData_in, assign a primitive matrix directly
     this->assign(MatData_in);
     return *this;
 }
@@ -839,59 +925,59 @@ Mat Mat::operator ^ (int power){ // A^power, this->intPower()
 // Non-member
 //
 // -A
-Mat operator - (Mat A){
-    return A.times(-1.0);
+Mat operator - (const Mat &A){
+    return Mat(A).times(-1.0);
 }
 // A + B
-Mat operator + (float a, Mat B){
-    return B.plus(a);
+Mat operator + (float a, const Mat &B){
+    return Mat(B).plus(a);
 }
-Mat operator + (Mat A, float b){
-    return A.plus(b);
+Mat operator + (const Mat &A, float b){
+    return Mat(A).plus(b);
 }
-Mat operator + (Mat A, Mat B){
-    return A.plus(B);
+Mat operator + (const Mat &A, const Mat &B){
+    return Mat(A).plus(B);
 }
 // A - B
-Mat operator - (float a, Mat B){
-    return B.minus(a, true); // (a - B)
+Mat operator - (float a, const Mat &B){
+    return Mat(B).minus(a, true); // (a - B)
 }
-Mat operator - (Mat A, float b){
-    return A.minus(b);
+Mat operator - (const Mat &A, float b){
+    return Mat(A).minus(b);
 }
-Mat operator - (Mat A, Mat B){
-    return A.minus(B);
+Mat operator - (const Mat &A, const Mat &B){
+    return Mat(A).minus(B);
 }
 // A * B
-Mat operator * (float a, Mat B){
-    return B.times(a);
+Mat operator * (float a, const Mat &B){
+    return Mat(B).times(a);
 }
-Mat operator * (Mat A, float b){
-    return A.times(b);
+Mat operator * (const Mat &A, float b){
+    return Mat(A).times(b);
 }
-Mat operator * (Mat A, Mat B){
+Mat operator * (const Mat &A, const Mat &B){
     // Matrix multiplication
-    return A.dot(B);
+    return Mat(A).dot(B);
 }
 // A/B, including matrix inversion (eg, (1.0/B) <--> B^-1)
-Mat operator / (float a, Mat B){ // a*(B^-1), for that B to be inversed
+Mat operator / (float a, const Mat &B){ // a*(B^-1), for that B to be inversed
     if (a == 1.0){
-        return B.inverse();
+        return Mat(B).inverse();
     }
-    return ( (B.inverse()).times(a) );
+    return ( ( Mat(B).inverse()).times(a) );
 }
-Mat operator / (Mat A, float b){ // A*(1/b), scalar multiplication of 1/b
-    return A.times(1.0/b);
+Mat operator / (const Mat &A, float b){ // A*(1/b), scalar multiplication of 1/b
+    return Mat(A).times(1.0/b);
 }
-Mat operator / (Mat A, Mat B){ // A*(B^-1), for that B to be inversed
-    return ( A.dot(B.inverse()) );
+Mat operator / (const Mat &A, const Mat &B){ // A*(B^-1), for that B to be inversed
+    return ( Mat(A).dot(Mat(B).inverse()) );
 }
 // A += B
 Mat& operator += (Mat &A, float b){
     A.increase(b);
     return A;
 }
-Mat& operator += (Mat &A, Mat B){
+Mat& operator += (Mat &A, const Mat &B){
     A.increase(B);
     return A;
 }
@@ -900,7 +986,7 @@ Mat& operator -= (Mat &A, float b){
     A.decrease(b);
     return A;
 }
-Mat& operator -= (Mat &A, Mat B){
+Mat& operator -= (Mat &A, const Mat &B){
     A.decrease(B);
     return A;
 }
@@ -909,7 +995,7 @@ Mat& operator *= (Mat &A, float b){
     A.scaleUp(b);
     return A;
 }
-Mat& operator *= (Mat &A, Mat B){ // Matrix multiplication
+Mat& operator *= (Mat &A, const Mat &B){ // Matrix multiplication
     A = A.dot(B);
     return A;
 }

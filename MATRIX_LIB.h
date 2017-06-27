@@ -46,6 +46,10 @@ public:
     size_t nRow();
     size_t nCol();
     size_t nElement(); // Number of elements
+    // const functions
+    size_t nRow() const;
+    size_t nCol() const;
+    size_t nElement() const; // Number of elements
     // "Set" and "get" the new size of the matrix
     size_t nRow(size_t nRow_in);
     size_t nCol(size_t nCol_in);
@@ -63,15 +67,15 @@ public:
     // Assignment ---
     void assign(std::stringstream &ss_in, size_t nRow_in, size_t nCol_in); // The stringstream ss_in contains a nRow_in by nCol_in matrix.
     void assign(float* Matrix_in, size_t nRow_in, size_t nCol_in); // From primitive 1-D array in c++, Matrix_in is a nRow_in by nCol_in matrix.
-    void assign(vector<float> &vec_in, bool is_RowVec); // From 1-D vector
-    void assign(vector<vector<float> > &MatData_in); // A = MatData_in, assign a primitive matrix directly
+    void assign(const vector<float> &vec_in, bool is_RowVec); // From 1-D vector
+    void assign(const vector<vector<float> > &MatData_in); // A = MatData_in, assign a primitive matrix directly
     // Partial asignment
-    void setPart(Mat M_part, size_t m_from, size_t n_from); // The block starts from (m_from, n_from)
+    void setPart(const Mat &M_part, size_t m_from, size_t n_from); // The block starts from (m_from, n_from)
     // Spetial assignments
     void zeros(size_t nRow_in, size_t nCol_in); // zeros(m,n)
     void ones(size_t nRow_in, size_t nCol_in); // ones(m,n)
     void eye(size_t nRow_in, size_t nCol_in); // Identity matrix, eye(m,n)
-    void diag(Mat M_diag); // Transform the row/column vector to a diagonal matrix and assign into this matrix
+    void diag(const Mat &M_diag); // Transform the row/column vector to a diagonal matrix and assign into this matrix
 
     // Get elements ---
     float at(size_t m, size_t n); // Get the element at (m,n)
@@ -89,17 +93,17 @@ public:
     // Operations =====
 
     // Comparison
-    bool is_equal(Mat M_in);
+    bool is_equal(const Mat &M_in);
 
     // Self-operation (affecting on this matrix) ---
     void scaleUp(float scale); // M *= scale
-    void scaleUp_Mat(Mat M_right); // M = M.times(M_right), element-wise multiplication
+    void scaleUp_Mat(const Mat &M_right); // M = M.times(M_right), element-wise multiplication
     //
     void increase(float scale); // M += scale, for each element in M
     void decrease(float scale); // M -= scale, for each element in M
     //
-    void increase(Mat M_right); // M += M_right
-    void decrease(Mat M_right); // M -= M_right
+    void increase(const Mat &M_right); // M += M_right
+    void decrease(const Mat &M_right); // M -= M_right
 
 
     // Single-operation, output another matrix ---
@@ -112,29 +116,29 @@ public:
     Mat plus(float scale); // (M + scale), for each element in M
     Mat minus(float scale); // (M - scale), for each element in M
     Mat minus(float scale, bool is_reversed); // is_reversed -> (scale - M), for each element in M
-    Mat plus(Mat M_right);
-    Mat minus(Mat M_right);
+    Mat plus(const Mat &M_right);
+    Mat minus(const Mat &M_right);
     // Concatenation
-    Mat cat_below(Mat M_in); // Below this matrix, [A; B]
-    Mat cat_right(Mat M_in); // Right-side of this matrix, [A, B]
-    Mat cat(Mat M_in, bool is_horizontal); // is_horizontal --> cat_Right(); otherwise --> cat_Below()
+    Mat cat_below(const Mat &M_in); // Below this matrix, [A; B]
+    Mat cat_right(const Mat &M_in); // Right-side of this matrix, [A, B]
+    Mat cat(const Mat &M_in, bool is_horizontal); // is_horizontal --> cat_Right(); otherwise --> cat_Below()
 
 
     // Scalar/Element-wise multiplication
     Mat times(float scale); // Scalar multiplication
-    Mat times(Mat M_right); // Element-wise multiplication
+    Mat times(const Mat &M_right); // Element-wise multiplication
 
     // Matrix multiplication
     // Note: this matrix is the "left" one
-    Mat dot(Mat M_right); // Similar to the nomenclature of numpy in Python
-    Mat dot(bool Transpose_left, Mat M_right, bool Transpose_right); // Extended version for conbining the ability of transpose of both mtrices
+    Mat dot(const Mat &M_right); // Similar to the nomenclature of numpy in Python
+    Mat dot(bool Transpose_left, const Mat &M_right, bool Transpose_right); // Extended version for conbining the ability of transpose of both mtrices
 
     // Operator overloading
     //----------------------------//
     // A <- b, assignment
     Mat& operator = (float scale); // Assign a real number as 1 by 1 matrix
-    Mat& operator = (vector<float> &colVec_in); // A = vec_in, assign as a column vector
-    Mat& operator = (vector<vector<float> > &MatData_in); // A = MatData_in, assign a primitive matrix directly
+    Mat& operator = (const vector<float> &colVec_in); // A = vec_in, assign as a column vector
+    Mat& operator = (const vector<vector<float> > &MatData_in); // A = MatData_in, assign a primitive matrix directly
     // b <- A, get value, using implicit type conversion
     // Note: no implicit conversion to float, since it would be ambiguous in other operator overriding
     explicit operator float (); // Get the first element as float, good for a 1 by 1 matrix
@@ -164,32 +168,32 @@ private:
 
 
 // -A
-Mat operator - (Mat A);
+Mat operator - (const Mat &A);
 // A + B
-Mat operator + (float a, Mat B);
-Mat operator + (Mat A, float b);
-Mat operator + (Mat A, Mat B);
+Mat operator + (float a, const Mat &B);
+Mat operator + (const Mat &A, float b);
+Mat operator + (const Mat &A, const Mat &B);
 // A - B
-Mat operator - (float a, Mat B);
-Mat operator - (Mat A, float b);
-Mat operator - (Mat A, Mat B);
+Mat operator - (float a, const Mat &B);
+Mat operator - (const Mat &A, float b);
+Mat operator - (const Mat &A, const Mat &B);
 // A * B
-Mat operator * (float a, Mat B);
-Mat operator * (Mat A, float b);
-Mat operator * (Mat A, Mat B); // Matrix multiplication
+Mat operator * (float a, const Mat &B);
+Mat operator * (const Mat &A, float b);
+Mat operator * (const Mat &A, const Mat &B); // Matrix multiplication
 // A/B, including matrix inversion (eg, (1.0/B) <--> B^-1)
-Mat operator / (float a, Mat B); // a*(B^-1), for that B to be inversed
-Mat operator / (Mat A, float b); // A*(1/b), scalar multiplication of 1/b
-Mat operator / (Mat A, Mat B); // A*(B^-1), for that B to be inversed
+Mat operator / (float a, const Mat &B); // a*(B^-1), for that B to be inversed
+Mat operator / (const Mat &A, float b); // A*(1/b), scalar multiplication of 1/b
+Mat operator / (const Mat &A, const Mat &B); // A*(B^-1), for that B to be inversed
 // A += B
 Mat& operator += (Mat &A, float b);
-Mat& operator += (Mat &A, Mat B);
+Mat& operator += (Mat &A, const Mat &B);
 // A -= B
 Mat& operator -= (Mat &A, float b);
-Mat& operator -= (Mat &A, Mat B);
+Mat& operator -= (Mat &A, const Mat &B);
 // A *= B
 Mat& operator *= (Mat &A, float b);
-Mat& operator *= (Mat &A, Mat B); // Matrix multiplication
+Mat& operator *= (Mat &A, const Mat &B); // Matrix multiplication
 
 //---------------------------------------//
 // end Operator overloading
