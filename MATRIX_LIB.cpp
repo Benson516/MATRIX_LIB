@@ -112,7 +112,7 @@ void Mat::resize(size_t nRow_in, size_t nCol_in, float element_in){ // Assign th
 void Mat::reshape(size_t nRow_in, size_t nCol_in, bool is_Row_first){ // If is_Row_first, keep the elements' order the same in the row direction; otherwise, keep the order the same in column direction.
     // Note: nRow_in * nCol_in should be better be the same as this->nElement(), or some elemnets will be lost or be added (add zeros, actually)
     //
-    vector<vector<float>> data_new(nRow_in, vector<float>(nCol_in));
+    vector<vector<float> > data_new(nRow_in, vector<float>(nCol_in));
     // Mat M_new(nRow_in, nCol_in);
 
     // The index for the old matrix
@@ -208,6 +208,8 @@ void Mat::assign(std::stringstream &ss_in, size_t nRow_in, size_t nCol_in){ // T
 void Mat::assign(float* Matrix_in, size_t nRow_in, size_t nCol_in){ // From primitive 1-D array in c++, Matrix_in is a nRow_in by nCol_in matrix.
     // Resize
     this->resize(nRow_in, nCol_in);
+    // 
+    // Note: the pointer Matrix_in is a copied one, operation on it will not make any effect on the pointer outside this scope.
     //
     for (size_t i = 0; i < this->_nRow; ++i){
         for (size_t j = 0; j < this->_nCol; ++j){
@@ -393,15 +395,15 @@ std::string Mat::print(void){ // Print this matrix out as string
     //
     std::string endl("\n"); // The end line character
 
-	//
+    //
     str_out += endl;
-	for (size_t i = 0; i < this->_nRow; ++i){
-		for (size_t j = 0; j < this->_nCol; ++j){
-			str_out += std::to_string( this->data[i][j] ) + "\t";
-		}
-		str_out += endl;
-	}
-	str_out += endl;
+    for (size_t i = 0; i < this->_nRow; ++i){
+        for (size_t j = 0; j < this->_nCol; ++j){
+            str_out += std::to_string( this->data[i][j] ) + "\t";
+        }
+        str_out += endl;
+    }
+    str_out += endl;
     //
     return str_out;
     */
@@ -410,14 +412,14 @@ std::string Mat::print(void){ // Print this matrix out as string
     std::stringstream ss_out;
     //
     ss_out << std::endl;
-	//
-	for (size_t i = 0; i < this->_nRow; ++i){
-		for (size_t j = 0; j < this->_nCol; ++j){
-			ss_out << this->data[i][j] << "\t";
-		}
-		ss_out << std::endl;
-	}
-	ss_out << std::endl;
+    //
+    for (size_t i = 0; i < this->_nRow; ++i){
+        for (size_t j = 0; j < this->_nCol; ++j){
+            ss_out << this->data[i][j] << "\t";
+        }
+        ss_out << std::endl;
+    }
+    ss_out << std::endl;
     //
     return ss_out.str();
 }
